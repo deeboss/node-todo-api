@@ -5,11 +5,11 @@ const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
 const todos = [{
-	text: "first test"
+	text: "Eat breakfast"
 }, {
-	text: "second test"
+	text: "Eat second breakfast"
 }, {
-	text: "third test"
+	text: "Take a nap"
 }];
 
 beforeEach((done) => {
