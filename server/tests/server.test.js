@@ -1,3 +1,5 @@
+// const _ = require('lodash');
+
 const expect = require('expect');
 const request = require('supertest');
 const {ObjectID} = require('mongodb');
@@ -7,13 +9,19 @@ const {Todo} = require('./../models/todo');
 
 const todos = [{
 	_id: new ObjectID(),
-	text: "Eat breakfast"
+	text: "Eat breakfast",
+	completed: true,
+	completedAt: 123
 }, {
 	_id: new ObjectID(),
-	text: "Eat second breakfast"
+	text: "Eat second breakfast",
+	completed: true,
+	completedAt: 123
 }, {
 	_id: new ObjectID(),
-	text: "Take a nap"
+	text: "Take a nap",
+	completed: true,
+	completedAt: 123
 }];
 
 beforeEach((done) => {
@@ -161,4 +169,67 @@ describe('DELETE /todos/:id', () => {
 			.expect(404)
 			.end(done);
 	});
+});
+
+
+describe('PATCH /todos/:id', () => {
+	it('should update the todo', (done) => {
+
+		// Grab ID of first item
+		let id = todos[0]._id.toHexString();
+		let text = "Updated for the test!";
+
+		request(app)
+			// make PATCH request with proper id
+			.patch(`/todos/${id}`)
+			// use send to send some data along with req body
+			// update text to whatever
+			// set completed = true
+			.send({
+				text,
+				completed: true
+			})
+			// Assert: get 200 back
+			.expect(200)
+			.expect((res) => {
+				// Assert: response body has text = to text sent in
+				// Assert: completed is true
+				// Assert: completedAt is a Number, you can use .toBeA
+				// console.log(res.body.todo.text);
+				expect(res.body.todo.text).toBe(text);
+				expect(res.body.todo.completed).toBe(true);
+				expect(res.body.todo.completedAt).toBeA('number');
+			})
+			.end(done);
+	});
+
+	it('should clear completedAt when todo is NOT completed', (done) => {
+		// Grab ID of second todo item
+		let id = todos[1]._id.toHexString();
+		let text = "Update for the second todo item for the test!";
+
+		// make PATCH request with proper id
+		request(app)
+			.patch(`/todos/${id}`)
+			// update text to something
+			// set completed = false
+			.send({
+				text,
+				completed: false
+			})
+			// Assert: get 200 back
+			.expect(200)
+			.expect((res) => {
+				// Assert: response body text = text sent in
+				// Assert: completed is false
+				// Assert: completedAt is null, you can use .toNotExist();
+				expect(res.body.todo.text).toBe(text);
+				expect(res.body.todo.completed).toBe(false);
+				expect(res.body.todo.completedAt).toNotExist();
+			})
+			.end(done);
+			
+
+	});
 })
+
