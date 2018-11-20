@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const express = require('express');
 const bodyParser = require("body-parser");
 
@@ -91,6 +93,52 @@ app.delete('/todos/:id', (req, res) => {
 
 
 });
+
+// PATCH /todo/1234
+app.patch('/todos/:id', (req, res) => {
+	var id = req.params.id;
+
+	// Lodash will help to pick out which objects that it will pull off
+	// This will be used to select which properties the users can update
+	// This has a subset of the things the user passed to us. We don't want the
+	// Users to be able update whatever they choose
+	var body = _.pick(req.body, ['text', 'completed'])
+
+	// Validate ID, if not valid then return 404
+	if (!ObjectID.isValid(id)) {
+		return res.status(404).send("Sorry, your ID was not valid");
+	}
+
+
+	// We updated the "Completed" property based off of its completed value
+	// If it was already completed, then it would be unmarked as completed
+	// If it was not completed yet, then we marked it as "Completed: True"
+	// And also set the CompletedAt time to match the timestamp of the completion time
+	if (_.isBoolean(body.completed) && body.completed) {
+		body.completedAt = new Date().getTime();
+	} else {
+		body.completed = false;
+		body.completedAt = null;
+	}
+
+	// The update values are passed onto the database.
+	Todo.findByIdAndUpdate(id, {
+		$set: body
+	}, {
+		new: true
+	}).then((todo) => {
+		if (!todo) {
+			return res.status(400).send()
+		}
+
+		res.send({todo});
+
+	}).catch((e) => {
+		res.status(400).send("Sorry, there was an error processing your request")
+	})
+
+})
+
 
 app.listen(port, () => {
 	console.log(`Listening at ${port}`);
