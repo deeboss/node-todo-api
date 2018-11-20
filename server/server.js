@@ -67,7 +67,7 @@ app.delete('/todos/:id', (req, res) => {
 
 	// Validate ID, if not valid then return 404
 	if (!ObjectID.isValid(id)) {
-		return res.status(400).send("Sorry, your ID was not valid");
+		return res.status(404).send("Sorry, your ID was not valid");
 	}
 
 	// If valid, remove todo by ID
@@ -79,7 +79,7 @@ app.delete('/todos/:id', (req, res) => {
 		}
 
 		// If doc, send doc back with 200
-		res.send(todo);
+		res.send({todo});
 
 
 	}).catch((e) => {
