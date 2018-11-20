@@ -51,7 +51,7 @@ app.get('/todos/:id', (req, res) => {
 		}
 		// Success
 		// If todo - send it back
-		return res.status(200).send({todo});
+		res.send({todo});
 	}).catch((e) => {
 		// Error
 			// 400
