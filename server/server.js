@@ -141,6 +141,23 @@ app.patch('/todos/:id', (req, res) => {
 
 })
 
+// POST /users/
+// Most similar is to create a new route for todo
+// Pick off the properties, email and password (and gives body variable to pass in)
+app.post('/users', (req, res) => {
+	let body = _.pick(req.body, ['email', 'password']);
+	let user = new Users(body);
+
+	user.save().then(() => {
+		return user.generateAuthToken();
+	}).then((token) => {
+		res.header('x-auth', token).send(user);
+	}).catch((e) => {
+		res.status(400).send(e);
+	});
+
+});
+
 
 app.listen(port, () => {
 	console.log(`Listening at ${port}`);
