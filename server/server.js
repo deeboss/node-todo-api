@@ -4,12 +4,11 @@ const _ = require('lodash');
 
 const express = require('express');
 const bodyParser = require("body-parser");
-
 const {ObjectID} = require('mongodb');
 
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
-const {Users} = require('./models/user');
+const {User} = require('./models/user');
 
 const port = process.env.PORT;
 
@@ -146,7 +145,7 @@ app.patch('/todos/:id', (req, res) => {
 // Pick off the properties, email and password (and gives body variable to pass in)
 app.post('/users', (req, res) => {
 	let body = _.pick(req.body, ['email', 'password']);
-	let user = new Users(body);
+	let user = new User(body);
 
 	user.save().then(() => {
 		return user.generateAuthToken();
@@ -158,6 +157,17 @@ app.post('/users', (req, res) => {
 
 });
 
+
+app.get('/users/me', (req, res) => {
+	var token = req.header('x-auth');
+
+	User.findByToken(token).then((user) => {
+		if (!user) {
+			res.send("It works")
+		}
+		res.send("user");
+	});
+});
 
 app.listen(port, () => {
 	console.log(`Listening at ${port}`);
