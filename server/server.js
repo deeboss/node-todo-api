@@ -163,9 +163,9 @@ app.get('/users/me', (req, res) => {
 
 	User.findByToken(token).then((user) => {
 		if (!user) {
-			res.send("It works")
+
 		}
-		res.send("user");
+		res.send(user);
 	});
 });
 
