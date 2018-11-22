@@ -42,9 +42,9 @@ UserSchema.methods.toJSON = function() {
 // Not arrow function because we need the 'this' keyword
 // Arrow functions don't pass the "this"
 UserSchema.methods.generateAuthToken = function() {
-	var user = this;
-	var access = 'auth';
-	var token = jwt.sign({_id: user._id.toHexString, access}, 'abc123').toString();
+	let user = this;
+	let access = 'auth';
+	let token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
 
 	user.tokens = user.tokens.concat([{access, token}]);
 
@@ -59,8 +59,8 @@ UserSchema.statics.findByToken = function(token) {
 	// Uppercase "User" rather than "user"
 	// Because instance methods get called by the individual document
 	// Model methods get called by the models as the "this" binding
-	var User = this;
-	var decoded;
+	let User = this;
+	let decoded;
 
 	// Try catch block will execute the "try" block first
 	// And if there are any errors it will stop the program and run what's
@@ -69,7 +69,15 @@ UserSchema.statics.findByToken = function(token) {
 	try {
 		decoded = jwt.verify(token, 'abc123');
 	} catch (e) {
+		// ES5 format:
+		// return new Promise((resolve, reject) => {
+		// 	reject();			
+		// })
 
+		// ES6 format:
+		// Passing in a value in the argument would get passed on as the 'e' in the
+		// catch block in the server.js function
+		return Promise.reject();
 	}
 
 	// If the token was successfully decoded that was passed in the header
@@ -82,6 +90,6 @@ UserSchema.statics.findByToken = function(token) {
 	});
 };
 
-var User = mongoose.model('User', UserSchema);
+let User = mongoose.model('User', UserSchema);
 
 module.exports = {User}
