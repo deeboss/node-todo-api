@@ -17,9 +17,10 @@ let app = express();
 
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
 	var todo = new Todo({
-		text: req.body.text
+		text: req.body.text,
+		_creator: req.user._id
 	});
 
 	todo.save().then((doc) => {
@@ -29,8 +30,10 @@ app.post('/todos', (req, res) => {
 	});
 })
 
-app.get('/todos', (req, res) => {
-	Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+	Todo.find({
+		_creator: req.user._id
+	}).then((todos) => {
 		res.send({todos});
 	}, (e) => {
 		res.status(400).send(e);
@@ -38,8 +41,8 @@ app.get('/todos', (req, res) => {
 })
 
 // GET /todos/1234
-app.get('/todos/:id', (req, res) => {
-	var id = req.params.id;
+app.get('/todos/:id', authenticate, (req, res) => {
+	let id = req.params.id;
 
 	// validate ID using ObjectID.isValid
 	// If not valid, respond with 404
@@ -48,8 +51,10 @@ app.get('/todos/:id', (req, res) => {
 		return res.status(404).send("Sorry, could not handle request");
 	}
 
-	// findById
-	Todo.findById(id).then((todo) => {
+	Todo.findOne({
+		_id: id,
+		_creator: req.user._id
+	}).then((todo) => {
 		// If no todo - send back 404 with empty body
 		if (!todo) {
 			return res.status(404).send("No Todo of that ID found");
@@ -66,8 +71,8 @@ app.get('/todos/:id', (req, res) => {
 }) 
 
 // DELETE /todo/1234
-app.delete('/todos/:id', (req, res) => {
-	var id = req.params.id;
+app.delete('/todos/:id', authenticate, (req, res) => {
+	let id = req.params.id;
 
 	// Validate ID, if not valid then return 404
 	if (!ObjectID.isValid(id)) {
@@ -76,7 +81,10 @@ app.delete('/todos/:id', (req, res) => {
 
 	// If valid, remove todo by ID
 	// Success
-	Todo.findByIdAndRemove(id).then((todo) => {
+	Todo.findOneAndRemove({
+		_id: id,
+		_creator: req.user._id
+	}).then((todo) => {
 		// If no doc, send 404
 		if (!todo) {
 			return res.status(404).send("Your todo item does not exist!");
@@ -97,14 +105,14 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 // PATCH /todo/1234
-app.patch('/todos/:id', (req, res) => {
-	var id = req.params.id;
+app.patch('/todos/:id', authenticate, (req, res) => {
+	let id = req.params.id;
 
 	// Lodash will help to pick out which objects that it will pull off
 	// This will be used to select which properties the users can update
 	// This has a subset of the things the user passed to us. We don't want the
 	// Users to be able update whatever they choose
-	var body = _.pick(req.body, ['text', 'completed'])
+	let body = _.pick(req.body, ['text', 'completed'])
 
 	// Validate ID, if not valid then return 404
 	if (!ObjectID.isValid(id)) {
@@ -124,13 +132,16 @@ app.patch('/todos/:id', (req, res) => {
 	}
 
 	// The update values are passed onto the database.
-	Todo.findByIdAndUpdate(id, {
+	Todo.findOneAndUpdate({
+		_id: id,
+		_creator: req.user._id
+	}, {
 		$set: body
 	}, {
 		new: true
 	}).then((todo) => {
 		if (!todo) {
-			return res.status(400).send()
+			return res.status(404).send()
 		}
 
 		res.send({todo});
