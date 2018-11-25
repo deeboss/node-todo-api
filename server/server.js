@@ -109,16 +109,17 @@ app.get('/todos/:id', authenticate, (req, res) => {
 
 // NEW - Async and Await
 app.delete('/todos/:id', authenticate, async (req, res) => {
+	const id = req.params.id;
+	// Validate ID, if not valid then return 404
+	if (!ObjectID.isValid(id)) {
+		return res.status(404).send("Sorry, your ID was not valid");
+	}
+
 	try {
-		let id = req.params.id;
-		// Validate ID, if not valid then return 404
-		if (!ObjectID.isValid(id)) {
-			return res.status(404).send("Sorry, your ID was not valid");
-		}
 
 		// If valid, remove todo by ID
 		// Success
-		let todo = await Todo.findOneAndRemove({_id: id, _creator: req.user._id})
+		const todo = await Todo.findOneAndRemove({_id: id, _creator: req.user._id})
 
 		// If no doc, send 404
 		if (!todo) {
